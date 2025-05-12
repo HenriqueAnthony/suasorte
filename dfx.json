@@ -1,0 +1,26 @@
+{
+  "canisters": {
+    "suasorte_backend": {
+      "main": "src/suasorte_backend/main.mo",
+      "type": "motoko"
+    },
+    "suasorte_frontend": {
+      "dependencies": [
+        "suasorte_backend"
+      ],
+      "source": [
+        "src/suasorte_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "suasorte_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
