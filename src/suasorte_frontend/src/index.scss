@@ -1,41 +1,408 @@
-body {
-  font-family: sans-serif;
-  font-size: 1.5rem;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+
 }
 
-img {
-  max-width: 50vw;
-  max-height: 25vw;
-  display: block;
-  margin: auto;
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: url('fundo.png') no-repeat;
+    background-position: center;
+    background-size: cover;
 }
-
-form {
-  display: flex;
-  justify-content: center;
-  gap: 0.5em;
-  flex-flow: row wrap;
-  max-width: 40vw;
-  margin: auto;
-  align-items: baseline;
-}
-
-button[type="submit"] {
-  padding: 5px 20px;
-  margin: 10px auto;
-  float: right;
-}
-
-#greeting {
-  margin: 10px auto;
-  padding: 10px 60px;
-  border: 1px solid #222;
-}
-
-#greeting:empty {
-  display: none;
-}
-
 .browser-warning {
   display: none;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 99;
+}
+
+.logo {
+    font-size: 2em;
+    color: white;
+    user-select: none;
+}
+
+.navegacao a {
+    position: relative;
+    font-size: 1.1em;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 40px;
+}
+
+.navegacao a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 3px;
+    background: black;
+    border-radius: 5px;
+    transform-origin: right;
+    transform: scaleX(0);
+    transition: transform .5s;
+}
+
+.navegacao :hover::after {
+    transform: scaleX(1);
+}
+
+.navegacao .btnLogin {
+    width: 130px;
+    height: 50px;
+    background: transparent;
+    border: 2px solid white;
+    outline: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    color: white;
+    font-weight: 500;
+    margin-left: 40px;
+    transition: .5s;
+}
+
+.navegacao .btnLogin:hover {
+    background: white;
+    color: black;
+}
+
+.wrapper {
+    position: relative;
+    width: 400px;
+    height: 520px;
+    background: transparent;
+    border: 2px solid rgba(255, 2552, 255, .5);
+    border-radius: 20PX;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgba(0, 0, 0, .5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: scale(0);/*mudar dps*/
+    transition: transform .5s ease, height .2s ease;
+    overflow: hidden;
+    max-height: 520px;     /* define altura máxima */
+    overflow-y: auto;
+}
+
+.wrapper.active-popup {
+    transform: scale(1);
+}
+
+.wrapper .caixa-form-login {
+    transition: transform .18s ease;
+    transform: translateX(0);
+}
+
+.wrapper.active .caixa-form-login {
+    transition: none;
+    transform: translateX(-400px);
+}
+
+.wrapper.active {
+    height: 520px
+}
+
+.wrapper.active .caixa-form-individual {
+    transition: none;
+    transform: translateX(0);
+    /* Agora sim ela entra na tela */
+}
+
+
+.wrapper .caixa-form-individual {
+    position: absolute;
+    transition: none;
+    transform: translateX(400px);
+}
+
+.caixa-form-login h2 {
+    font-size: 3em;
+    color: white;
+    text-align: center;
+}
+
+.registro-login {
+    font-size: .9em;
+    color: white;
+    text-align: center;
+    font-weight: 500;
+    margin: 25px 0 10px;
+}
+
+.registro-login p a {
+    color: black;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+
+.caixa-form-individual h2 {
+    font-size: 2.4em;
+    color: white;
+    text-align: center;
+}
+
+.registro-individual {
+    font-size: .9em;
+    color: white;
+    text-align: center;
+    font-weight: 500;
+    margin: 25px 0 10px;
+}
+
+.registro-individual p a {
+    color: black;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+
+/*nova*/
+.adcnome .quantidade {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.adcnome .quantidade input {
+    text-align: center;
+    border-radius: 16px;
+    width: 52px;
+}
+
+.adcnome {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.adcnome input {
+    margin: 8px;
+    background-color: white;
+    color: black;
+    border-radius: 16px;
+    font-size: 1em;
+    border: 2px solid white;
+
+    text-align: center;
+    text-decoration: none;
+}
+
+.adcnome :placeholder-shown {
+    background: white;
+    text-align: center;
+    text-decoration: none
+}
+
+.adcnome button {
+    background: white;
+    border: 2px solid white;
+    border-radius: 16px;
+    text-align: center;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.botoes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.botoes button {
+    margin: 4px;
+    font-size: 1.4em;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: white;
+    border: 2px solid white;
+    cursor: pointer;
+    background: transparent;
+    color: white;
+    
+}
+
+.botoes button:hover {
+    background: white;
+    color: black;
+    transition: .5s;
+
+}
+
+.caixa-form-login ul {
+    display: flex;
+    flex-wrap: wrap;         /* permite que os itens quebrem linha */
+    gap: 10px;               /* espaço entre os itens */
+    justify-content: center; /* centraliza os itens */
+    padding: 0;
+    margin: 10px 0;
+    list-style: none;
+    color: white;
+    max-height: 180px;     /* define altura máxima */
+    overflow-y: auto;
+}
+
+.caixa-form-login .resultado{
+    display: flex;
+    flex-wrap: wrap;         /* permite que os itens quebrem linha */
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2em;
+    max-height: 80px;     /* define altura máxima */
+    overflow-y: auto;
+    
+}
+
+.adcnome input,
+.adcnome button,
+.botoes button {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    
+}
+
+button:active {
+    transform: scale(1.2);
+}
+
+.adcnome input,
+.adcnome button {
+    border: 2px solid #ddd;
+}
+
+.adcnome button,
+.botoes button {
+    padding: 4px 16px; /* altura (8px) e laterais (16px) */
+}
+
+
+.caixa-form-login ul::-webkit-scrollbar {
+    width: 8px;
+}
+
+.caixa-form-login ul::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+}
+
+.caixa-form-login .resultado::-webkit-scrollbar {
+    width: 8px;
+}
+
+.caixa-form-login .resultado::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+}
+
+/*novo*/
+/* Centraliza tudo */
+.sorteio-arquivo {
+    color: white;
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Aplica aos inputs e botões */
+.sorteio-arquivo input,
+.sorteio-arquivo button {
+    margin: 4px;
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 1.4em;
+    text-align: center;
+    text-decoration: white;
+    border: 2px solid white;
+    cursor: pointer;
+    background: transparent;
+    color: white;
+}
+
+/* INPUT DE ARQUIVO – invisível, estilizado via label */
+input[type="file"] {
+    display: block;
+    margin: 0 auto;
+    opacity: 0;
+    width: 0.1px;
+    height: 0.1px;
+    position: absolute;
+    z-index: -1;
+}
+
+input[type="file"] + label {
+    display: inline-block;
+    background: white;
+    color: black;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+input[type="file"] + label:hover {
+    background: #eee;
+}
+
+/* Agrupa input de arquivo + campo de número lado a lado */
+.topo-sorteio {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap; /* caso fique apertado em telas pequenas */
+    margin-top: 20px;
+}
+
+/* Campo numérico com estilo consistente */
+.topo-sorteio input[type="number"] {
+    background: white;
+    color: black;
+    font-size: 1.2em;
+    border-radius: 12px;
+    border: 2px solid white;
+    padding: 6px 12px;
+    width: 100px;
+    text-align: center;
+}
+.arquivo-nome {
+    color: white;
+    font-size: 0.95em;
+    margin-top: 4px;
+    text-align: center;
+}
+
+.caixa-form-individual .resultado{
+     display: flex;
+    flex-wrap: wrap;         /* permite que os itens quebrem linha */
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1em;
+    max-height: 100px;     /* define altura máxima */
+    overflow-y: auto;
 }
