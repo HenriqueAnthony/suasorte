@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { AuthClient } from "@dfinity/auth-client";
 import { suasorte_backend } from "declarations/suasorte_backend";
 
 function App() {
@@ -8,47 +9,76 @@ function App() {
   const [resultado, setResultado] = useState([]);
   const [resultadoArquivo, setResultadoArquivo] = useState([]);
   const nomeArquivoSelecionadoRef = useRef(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const wrapperRef = useRef(null);
   const arquivoInputRef = useRef(null);
 
   useEffect(() => {
-    const wrapper = wrapperRef.current;
+  const wrapper = wrapperRef.current;
 
-    const handleRegisterClick = (e) => {
-      e.preventDefault();
-      wrapper.classList.add("active");
-    };
+  const handleRegisterClick = (e) => {
+    e.preventDefault();
+    wrapper.classList.add("active");
+  };
 
-    const handleLoginClick = (e) => {
-      e.preventDefault();
-      wrapper.classList.remove("active");
-    };
+  const handleLoginClick = (e) => {
+    e.preventDefault();
+    wrapper.classList.remove("active");
+  };
 
-    const handlePopup = () => {
-      wrapper.classList.add("active-popup");
-    };
+  const handleSorteadorClick = (e) => {
+    e.preventDefault();
+    wrapper.classList.add("active-popup");
+  };
 
+  document
+    .querySelector(".registerLink")
+    ?.addEventListener("click", handleRegisterClick);
+  document
+    .querySelector(".loginLink")
+    ?.addEventListener("click", handleLoginClick);
+  document
+    .querySelector(".sorteadornav")
+    ?.addEventListener("click", handleSorteadorClick);
+
+  return () => {
     document
       .querySelector(".registerLink")
-      ?.addEventListener("click", handleRegisterClick);
+      ?.removeEventListener("click", handleRegisterClick);
     document
       .querySelector(".loginLink")
-      ?.addEventListener("click", handleLoginClick);
-    document.querySelector(".btnLogin")?.addEventListener("click", handlePopup);
+      ?.removeEventListener("click", handleLoginClick);
+    document
+      .querySelector(".sorteadornav")
+      ?.removeEventListener("click", handleSorteadorClick);
+  };
+}, []);
 
-    return () => {
-      document
-        .querySelector(".registerLink")
-        ?.removeEventListener("click", handleRegisterClick);
-      document
-        .querySelector(".loginLink")
-        ?.removeEventListener("click", handleLoginClick);
-      document
-        .querySelector(".btnLogin")
-        ?.removeEventListener("click", handlePopup);
-    };
-  }, []);
+  // COLOQUE ISSO FORA DO useEffect
+const login = async () => {
+  const authClient = await AuthClient.create();
+
+  await authClient.login({
+    identityProvider: "https://identity.ic0.app/#authorize",
+    onSuccess: async () => {
+      const identity = authClient.getIdentity();
+      setIsLoggedIn(true);
+      window.location.href = "/suasorte/";
+    },
+    windowOpenerFeatures: `
+      left=${window.screen.width / 2 - 525 / 2},
+      top=${window.screen.height / 2 - 705 / 2},
+      toolbar=0,location=0,menubar=0,width=525,height=705
+    `,
+  });
+};
+
+const logout = async () => {
+  const authClient = await AuthClient.create();
+  await authClient.logout();
+  setIsLoggedIn(false);
+};
 
   const adicionarNome = () => {
     const nomeLimpo = nome.trim();
@@ -79,6 +109,18 @@ function App() {
     }
 
     setResultado(sorteados);
+
+    // Envia o resultado para o backend (ICP)
+  if (isLoggedIn) {
+    const texto = `Sorteio Manual: ${sorteados.join(", ")}`;
+    try {
+      await suasorte_backend.registrarSorteio(texto);
+      console.log("Sorteio registrado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao registrar sorteio:", err);
+    }
+  }
+
   };
 
   const limparTudo = () => {
@@ -131,6 +173,7 @@ function App() {
     };
 
     reader.readAsText(file);
+    
   };
 
   const handleArquivoChange = (e) => {
@@ -158,9 +201,19 @@ function App() {
         <nav className="navegacao">
           <a href="#">Home</a>
           <a href="#">Explorar</a>
-          <a href="#">Sorteios</a>
+          <a href="#" className="sorteadornav">
+            Sorteios
+          </a>
           <a href="#">Contato</a>
-          <button className="btnLogin">Login</button>
+          {isLoggedIn ? (
+            <button onClick={logout} id="logout">
+              Logout
+            </button>
+          ) : (
+            <button onClick={login} className="btnLogin">
+              Login
+            </button>
+          )}
         </nav>
       </header>
 
