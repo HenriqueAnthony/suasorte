@@ -10,75 +10,78 @@ function App() {
   const [resultadoArquivo, setResultadoArquivo] = useState([]);
   const nomeArquivoSelecionadoRef = useRef(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [historico, setHistorico] = useState([]);
+  const [contador, setContador] = useState(0);
+  const [mostrandoResultado, setMostrandoResultado] = useState(false);
 
   const wrapperRef = useRef(null);
   const arquivoInputRef = useRef(null);
 
   useEffect(() => {
-  const wrapper = wrapperRef.current;
+    const wrapper = wrapperRef.current;
 
-  const handleRegisterClick = (e) => {
-    e.preventDefault();
-    wrapper.classList.add("active");
-  };
+    const handleRegisterClick = (e) => {
+      e.preventDefault();
+      wrapper.classList.add("active");
+    };
 
-  const handleLoginClick = (e) => {
-    e.preventDefault();
-    wrapper.classList.remove("active");
-  };
+    const handleLoginClick = (e) => {
+      e.preventDefault();
+      wrapper.classList.remove("active");
+    };
 
-  const handleSorteadorClick = (e) => {
-    e.preventDefault();
-    wrapper.classList.add("active-popup");
-  };
+    const handleSorteadorClick = (e) => {
+      e.preventDefault();
+      wrapper.classList.add("active-popup");
+    };
 
-  document
-    .querySelector(".registerLink")
-    ?.addEventListener("click", handleRegisterClick);
-  document
-    .querySelector(".loginLink")
-    ?.addEventListener("click", handleLoginClick);
-  document
-    .querySelector(".sorteadornav")
-    ?.addEventListener("click", handleSorteadorClick);
-
-  return () => {
     document
       .querySelector(".registerLink")
-      ?.removeEventListener("click", handleRegisterClick);
+      ?.addEventListener("click", handleRegisterClick);
     document
       .querySelector(".loginLink")
-      ?.removeEventListener("click", handleLoginClick);
+      ?.addEventListener("click", handleLoginClick);
     document
       .querySelector(".sorteadornav")
-      ?.removeEventListener("click", handleSorteadorClick);
-  };
-}, []);
+      ?.addEventListener("click", handleSorteadorClick);
+
+    return () => {
+      document
+        .querySelector(".registerLink")
+        ?.removeEventListener("click", handleRegisterClick);
+      document
+        .querySelector(".loginLink")
+        ?.removeEventListener("click", handleLoginClick);
+      document
+        .querySelector(".sorteadornav")
+        ?.removeEventListener("click", handleSorteadorClick);
+    };
+  }, []);
 
   // COLOQUE ISSO FORA DO useEffect
-const login = async () => {
-  const authClient = await AuthClient.create();
+  const login = async () => {
+    const authClient = await AuthClient.create();
 
-  await authClient.login({
-    identityProvider: "https://identity.ic0.app/#authorize",
-    onSuccess: async () => {
-      const identity = authClient.getIdentity();
-      setIsLoggedIn(true);
-      window.location.href = "/suasorte/";
-    },
-    windowOpenerFeatures: `
+    await authClient.login({
+      identityProvider: "https://identity.ic0.app/#authorize",
+      onSuccess: async () => {
+        const identity = authClient.getIdentity();
+        setIsLoggedIn(true);
+        window.location.href = "/suasorte/";
+      },
+      windowOpenerFeatures: `
       left=${window.screen.width / 2 - 525 / 2},
       top=${window.screen.height / 2 - 705 / 2},
       toolbar=0,location=0,menubar=0,width=525,height=705
     `,
-  });
-};
+    });
+  };
 
-const logout = async () => {
-  const authClient = await AuthClient.create();
-  await authClient.logout();
-  setIsLoggedIn(false);
-};
+  const logout = async () => {
+    const authClient = await AuthClient.create();
+    await authClient.logout();
+    setIsLoggedIn(false);
+  };
 
   const adicionarNome = () => {
     const nomeLimpo = nome.trim();
@@ -100,6 +103,24 @@ const logout = async () => {
       return;
     }
 
+    // Inicia contagem de 5 segundos
+    setContador(5);
+    setResultado([]);
+    setMostrandoResultado(false);
+
+    let tempo = 5;
+    const interval = setInterval(() => {
+      tempo -= 1;
+      setContador(tempo);
+
+      if (tempo === 0) {
+        clearInterval(interval);
+        realizarSorteio(qtd); // Chama a função async
+      }
+    }, 1000);
+  };
+
+  const realizarSorteio = async (qtd) => {
     const copia = [...listaNomes];
     const sorteados = [];
 
@@ -109,18 +130,19 @@ const logout = async () => {
     }
 
     setResultado(sorteados);
+    setHistorico((prev) => [...prev, sorteados]);
+    setMostrandoResultado(true);
 
-    // Envia o resultado para o backend (ICP)
-  if (isLoggedIn) {
-    const texto = `Sorteio Manual: ${sorteados.join(", ")}`;
-    try {
-      await suasorte_backend.registrarSorteio(texto);
-      console.log("Sorteio registrado com sucesso!");
-    } catch (err) {
-      console.error("Erro ao registrar sorteio:", err);
+    // Envia para o backend
+    if (isLoggedIn) {
+      const texto = `Sorteio Manual: ${sorteados.join(", ")}`;
+      try {
+        await suasorte_backend.registrarSorteio(texto);
+        console.log("Sorteio registrado com sucesso!");
+      } catch (err) {
+        console.error("Erro ao registrar sorteio:", err);
+      }
     }
-  }
-
   };
 
   const limparTudo = () => {
@@ -161,19 +183,47 @@ const logout = async () => {
         return;
       }
 
-      const copia = [...linhas];
-      const sorteados = [];
+      // INICIA CONTAGEM
+      setContador(5);
+      setResultadoArquivo([]);
+      setMostrandoResultado(false);
 
-      for (let i = 0; i < qtd; i++) {
-        const index = Math.floor(Math.random() * copia.length);
-        sorteados.push(copia.splice(index, 1)[0]);
-      }
+      let tempo = 5;
+      const interval = setInterval(() => {
+        tempo -= 1;
+        setContador(tempo);
 
-      setResultadoArquivo(sorteados);
+        if (tempo === 0) {
+          clearInterval(interval);
+          realizarSorteioArquivo(linhas, qtd);
+        }
+      }, 1000);
     };
 
     reader.readAsText(file);
-    
+  };
+  const realizarSorteioArquivo = (linhas, qtd) => {
+    const copia = [...linhas];
+    const sorteados = [];
+
+    for (let i = 0; i < qtd; i++) {
+      const index = Math.floor(Math.random() * copia.length);
+      sorteados.push(copia.splice(index, 1)[0]);
+    }
+
+    setResultadoArquivo(sorteados);
+    setHistorico((prev) => [...prev, sorteados]);
+    setMostrandoResultado(true);
+
+    // Registrar no backend se quiser (opcional)
+    if (isLoggedIn) {
+      const texto = `Sorteio por Arquivo: ${sorteados.join(", ")}`;
+      try {
+        suasorte_backend.registrarSorteio(texto);
+      } catch (err) {
+        console.error("Erro ao registrar sorteio:", err);
+      }
+    }
   };
 
   const handleArquivoChange = (e) => {
@@ -229,6 +279,7 @@ const logout = async () => {
               onChange={(e) => setNome(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && adicionarNome()}
             />
+            <button onClick={adicionarNome}>Adicionar</button>
             <div className="quantidade">
               <input
                 type="number"
@@ -238,7 +289,6 @@ const logout = async () => {
                 onChange={(e) => setQuantidade(e.target.value)}
               />
             </div>
-            <button onClick={adicionarNome}>Adicionar</button>
           </div>
 
           <ul id="listaNomes">
@@ -253,11 +303,30 @@ const logout = async () => {
           </div>
 
           <div className="resultado" id="resultado">
-            {resultado.map((r, i) => (
-              <span key={i} className="posicao">
-                {i + 1}. {r}
-              </span>
-            ))}
+            {contador > 0 && !mostrandoResultado ? (
+              <span className="contador">{contador}</span>
+            ) : (
+              resultado.map((r, i) => (
+                <span key={i} className="posicao">
+                  {i + 1}. {r}
+                </span>
+              ))
+            )}
+          </div>
+
+          <div className="historico-sorteios">
+            <h3>Histórico de Sorteios</h3>
+            {historico.length === 0 ? (
+              <p>Nenhum sorteio ainda.</p>
+            ) : (
+              <ul>
+                {historico.map((sorteio, idx) => (
+                  <li key={idx}>
+                    {idx + 1}º: {sorteio.join(", ")}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="registro-login">
@@ -297,11 +366,30 @@ const logout = async () => {
               <button onClick={sortearDoArquivo}>Sortear</button>
             </div>
             <div id="resultadoArquivo" className="resultado">
-              {resultadoArquivo.map((r, i) => (
-                <span key={i}>
-                  {i + 1}º {r}
-                </span>
-              ))}
+              {contador > 0 && !mostrandoResultado ? (
+                <span className="contador">{contador}</span>
+              ) : (
+                resultadoArquivo.map((r, i) => (
+                  <span key={i} className="posicao">
+                    {i + 1}. {r}
+                  </span>
+                ))
+              )}
+            </div>
+
+            <div className="historico-sorteios">
+              <h3>Histórico de Sorteios</h3>
+              {historico.length === 0 ? (
+                <p>Nenhum sorteio ainda.</p>
+              ) : (
+                <ul>
+                  {historico.map((sorteio, idx) => (
+                    <li key={idx}>
+                      {idx + 1}º: {sorteio.join(", ")}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
 
