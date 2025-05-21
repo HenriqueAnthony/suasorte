@@ -1,31 +1,48 @@
 import Principal "mo:base/Principal";
 import List "mo:base/List";
 import Text "mo:base/Text";
+import Nat "mo:base/Nat";
+import Array "mo:base/Array";
+import Bool "mo:base/Bool";
+import Debug "mo:base/Debug";
+
 
 actor {
-  type Registro = {
-    usuario: Principal;
-    texto: Text;
+  public type UserData = {
+    principal : Text;
+    dataSorteio : Nat;
+    
   };
 
-  stable var sorteios : List.List<Registro> = List.nil<Registro>();
+  stable var sorteios : [UserData] = [];
 
-  public shared ({ caller }) func registrarSorteio(texto: Text) : async () {
-    let usuario = caller;
-    let novo : Registro = { usuario = usuario; texto = texto };
-    sorteios := List.push(novo, sorteios);
+  public shared (msg) func sortear(dataSorteio : Nat) : async () {
+    if (Principal.isAnonymous(msg.caller)) {
+      //anonimo
+      Debug.trap("Usuario não identificado");
+    };
+
+    //CRIAR O RECORTE DO PAGE
+    var sorteio : UserData = {
+      principal = Principal.toText(msg.caller);
+      dataSorteio = dataSorteio;
+      
+    };
+    //adiciona ao array
+    sorteios := Array.append(sorteios, [sorteio]);
   };
 
-  public query func listarSorteios() : async [Registro] {
-    return List.toArray(sorteios);
-  };
+  public shared query (msg) func getSorteiosUsuario() : async [UserData] {
+    if (Principal.isAnonymous(msg.caller)) {
+      Debug.trap("Usuario não identificado");
+    };
 
-  public query func listarSorteiosDoUsuario(usuario: Principal) : async [Text] {
-    let filtrados = List.filter<Registro>(
-      sorteios,
-      func(r) { r.usuario == usuario }
-    );
-    let textos = List.map<Registro, Text>(filtrados, func(r) { r.texto });
-    return List.toArray(textos);
+    let principal = Principal.toText(msg.caller);
+
+    func procurar(a : UserData) : Bool {
+      (a.principal == principal);
+    };
+
+    return Array.filter<UserData>(sorteios, procurar);
   };
 };

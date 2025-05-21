@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { AuthClient } from "@dfinity/auth-client";
-import { suasorte_backend } from "declarations/suasorte_backend";
+import { createActor, canisterId } from "declarations/suasorte_backend";
+
 
 function App() {
   const [nome, setNome] = useState("");
@@ -9,6 +10,8 @@ function App() {
   const [resultado, setResultado] = useState([]);
   const [resultadoArquivo, setResultadoArquivo] = useState([]);
   const nomeArquivoSelecionadoRef = useRef(null);
+  const [authClient, setAuthClient] = useState(null);
+  const [suasorte_backend, setSuasorteBackend] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [historico, setHistorico] = useState([]);
   const [contador, setContador] = useState(0);
@@ -18,6 +21,23 @@ function App() {
   const arquivoInputRef = useRef(null);
 
   useEffect(() => {
+    (async () => {
+    const client = await AuthClient.create();
+    setAuthClient(client);
+
+    if (await client.isAuthenticated()) {
+      const identity = client.getIdentity();
+      const actor = createActor(canisterId, {
+        agentOptions: {
+          identity,
+        },
+      });
+
+      setSuasorteBackend(actor);
+      setIsLoggedIn(true);
+    }
+  })();
+
     const wrapper = wrapperRef.current;
 
     const handleRegisterClick = (e) => {
@@ -60,22 +80,32 @@ function App() {
 
   // COLOQUE ISSO FORA DO useEffect
   const login = async () => {
-    const authClient = await AuthClient.create();
+  const client = await AuthClient.create();
 
-    await authClient.login({
-      identityProvider: "https://identity.ic0.app/#authorize",
-      onSuccess: async () => {
-        const identity = authClient.getIdentity();
-        setIsLoggedIn(true);
-        window.location.href = "/suasorte/";
-      },
-      windowOpenerFeatures: `
+  await client.login({
+    identityProvider: "https://identity.ic0.app/#authorize",
+    onSuccess: async () => {
+      const identity = client.getIdentity();
+
+      // Cria o ator autenticado
+      const actor = createActor(canisterId, {
+        agentOptions: {
+          identity,
+        },
+      });
+
+      setSuasorteBackend(actor);
+      setAuthClient(client);
+      setIsLoggedIn(true);
+      window.location.href = "/suasorte/";
+    },
+    windowOpenerFeatures: `
       left=${window.screen.width / 2 - 525 / 2},
       top=${window.screen.height / 2 - 705 / 2},
       toolbar=0,location=0,menubar=0,width=525,height=705
     `,
-    });
-  };
+  });
+};
 
   const logout = async () => {
     const authClient = await AuthClient.create();
@@ -135,9 +165,9 @@ function App() {
 
     // Envia para o backend
     if (isLoggedIn) {
-      const texto = `Sorteio Manual: ${sorteados.join(", ")}`;
+      const timestamp = BigInt(Math.floor(Date.now() / 1000));
       try {
-        await suasorte_backend.registrarSorteio(texto);
+        await suasorte_backend.sortear(timestamp);
         console.log("Sorteio registrado com sucesso!");
       } catch (err) {
         console.error("Erro ao registrar sorteio:", err);
